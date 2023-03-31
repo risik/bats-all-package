@@ -1,0 +1,1 @@
+# bats-all-package
