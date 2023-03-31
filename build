@@ -8,15 +8,9 @@ GITHUB_BASE_URL=${GITHUB_BASE_URL:-https://github.com}
 BATS_DEFAULT_BASE_URL="${GITHUB_BASE_URL}/bats-core"
 BATS_BASE_URL=${BATS_BASE_URL:-${BATS_DEFAULT_BASE_URL}}
 
-DEFAULT_PACKAGE_VERSION="${BATS_CORE_VERSION}"
-PACKAGE_VERSION=${PACKAGE_VERSION:-${DEFAULT_PACKAGE_VERSION}}
-if [ -n "${BUILD_NUMBER}" ]; then
-  PACKAGE_VERSION="${PACKAGE_VERSION}-${BUILD_NUMBER}"
-fi
-
-BUILD_TMP_DIR=${PWD}/.build/tmp
-BUILD_UNPACKED=${PWD}/.build/upacked
-BUILD_DESTINATION=${PWD}/.build/dst
+BUILD_TMP_DIR=.build/tmp
+BUILD_UNPACKED=.build/upacked
+BUILD_DESTINATION=./
 
 #
 # Download artifact from github tag
@@ -50,7 +44,7 @@ download_tag_artifacts() {
 
 pack_one_artifact() {
   local result_file_path
-  result_file_path="${BUILD_DESTINATION}"/bats-all-"${PACKAGE_VERSION}".tar.gz
+  result_file_path="${BUILD_DESTINATION}"/bats-all.tar.gz
 
   mkdir -p "${BUILD_DESTINATION}"
 
