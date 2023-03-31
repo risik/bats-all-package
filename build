@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -e
+
+. source_versions.sh
+
+GITHUB_BASE_URL=${GITHUB_BASE_URL:-https://github.com}
+BATS_DEFAULT_BASE_URL="${GITHUB_BASE_URL}/bats-core"
+BATS_BASE_URL=${BATS_BASE_URL:-${BATS_DEFAULT_BASE_URL}}
+
+DEFAULT_PACKAGE_VERSION="${BATS_CORE_VERSION}"
+PACKAGE_VERSION=${PACKAGE_VERSION:-${DEFAULT_PACKAGE_VERSION}}
+if [ -n "${BUILD_NUMBER}" ]; then
+  PACKAGE_VERSION="${PACKAGE_VERSION}-${BUILD_NUMBER}"
+fi
+
+BUILD_TMP_DIR=${PWD}/.build/tmp
+BUILD_UNPACKED=${PWD}/.build/upacked
+BUILD_DESTINATION=${PWD}/.build/dst
+
+#
+# Download artifact from github tag
+# URL example: https://github.com/bats-core/bats-core/archive/refs/tags/v1.9.0.tar.gz
+#
+download_tag_artifact() {
+  local repo_name=$1
+  local tag_version=$2
+  local target_dir=$3
+
+  local full_url tmp_file_name
+
+  full_url="${BATS_BASE_URL}/${repo_name}/archive/refs/tags/v${tag_version}.tar.gz"
+  tmp_file_name=${BUILD_TMP_DIR}/${repo_name}.tar.gz
+
+  mkdir -p "${BUILD_TMP_DIR}" "${BUILD_TMP_DIR}/${repo_name}" "${target_dir}"
+
+  curl --location --silent --fail "${full_url}" -o "${tmp_file_name}"
+  tar -xzf "${tmp_file_name}" -C "${BUILD_TMP_DIR}/${repo_name}"
+  cp -r "${BUILD_TMP_DIR}/${repo_name}/${repo_name}-${tag_version}"/* "${target_dir}"
+
+  rm -f "${tmp_file_name}"
+}
+
+download_tag_artifacts() {
+  download_tag_artifact bats-core ${BATS_CORE_VERSION} "${BUILD_UNPACKED}/bats"
+  download_tag_artifact bats-support ${BATS_SUPPORT_VERSION} "${BUILD_UNPACKED}/bats-support"
+  download_tag_artifact bats-assert ${BATS_ASSERT_VERSION} "${BUILD_UNPACKED}/bats-assert"
+  download_tag_artifact bats-file ${BATS_FILE_VERSION} "${BUILD_UNPACKED}/bats-file"
+}
+
+pack_one_artifact() {
+  local result_file_path
+  result_file_path="${BUILD_DESTINATION}"/bats-all-"${PACKAGE_VERSION}".tar.gz
+
+  mkdir -p "${BUILD_DESTINATION}"
+
+  tar -czf "${result_file_path}" -C "${BUILD_UNPACKED}" .
+  echo "${result_file_path}"
+}
+
+main() {
+  download_tag_artifacts
+  pack_one_artifact
+}
+
+main
