@@ -1,0 +1,9 @@
+name: pack-release-package
+run-name: Triggered by ${{ github.actor }}
+on: [push]
+jobs:
+  pack-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./build
